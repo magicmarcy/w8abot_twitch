@@ -1,0 +1,10 @@
+.git
+.idea
+/data/
+/log/
+/msglog/
+/node_modules/
+/settings/
+.env
+channel_logger.js
+test.js
