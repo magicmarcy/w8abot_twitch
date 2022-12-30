@@ -1,5 +1,14 @@
 /**
  * w8abot - Ein neuer Twitch Channel Bot fuer deine Community
+ *
+ * ------------------------------------------------------------------------
+ * Quickstart:
+ * - .env-Datei mit deinen Credentials im root des Projekts anlegen!
+ *   - USERNAME: Dein Botname
+ *   - OAUTH: Dein OAuth-Key
+ * - In /settings/botsettings.js den Botname auf deinen Botnamen aendern
+ * - Starten mit: node start.js CHANNELNAME
+ * ------------------------------------------------------------------------
  * 
  * Dieser Bot wurde geschrieben und entwickelt von @magicmarcy / @w8abit_de
  * Alle Ausgaben des Bots sind auf deutsch!
@@ -11,7 +20,7 @@
  * @see https://github.com/magicmarcy/w8abot_twitch/blob/main/COMMANDS.md Command Uebersicht
  */
 
-import {linfo, ltrace, msglog} from "./utils/logger.js";
+import {linfo, ltrace, lwarn, msglog} from "./utils/logger.js";
 import {createClient} from "./utils/clientutils.js";
 import {isBot, isModOrStreamer, splitAndResolveString} from "./utils/utils.js";
 import {addOrUpdateChannelPoints, getPointsForUser, givePoints, setPoints, showPoints, showTopPoints} from "./useractions/points.js";
@@ -31,7 +40,7 @@ import {addEvent, deleteEvent, startEvent} from "./useractions/ticket.js";
 import {PARAMKONST} from "./utils/konst.js";
 
 // Client connection
-const client = createClient();
+const client = createClient(getChannels());
 
 // Connection handler
 client.on('connected', onConnectedHandler);
@@ -73,7 +82,7 @@ client.on('message', async (channel, tags, message, self) => {
                     case 'botinfo':
                     case 'help':
                     case 'info':
-                        client.say(channel, 'Hi, ich bin ' + constants.BOTNAME + ' (Version ' + constants.BOTVERSION + ')! Schau mal im Discord vorbei, wenn du weitere Infos zu meinen Funktionen benötigst.');
+                        client.say(channel, 'Hi, ich bin der Twitch Channel Bot in Version ' + constants.BOTVERSION + '! Alle Infos hier: ' + constants.GITHUBURL);
                         break;
                     case 'givepoints':
                         givePoints(client, channel, tags, splittedMsg);
@@ -99,6 +108,9 @@ client.on('message', async (channel, tags, message, self) => {
                         // Prueft dann auch, wer davon onine ist
                         performWhoToRaid(client, channel, tags, message);
                         break;
+                    case 'killbot':
+                        lwarn(channel, `Bot via Command gestoppt!`);
+                        process.exit(1);
                 }
             }
 
@@ -405,7 +417,7 @@ function onDisconnectedHandler(reason) {
     linfo("", `Disconnected: ${reason}`)
     printLeaveMsgToChat(client);
 
-    process.exit(1)
+    process.exit(1);
 }
 
 function sleep(milliseconds) {
@@ -426,20 +438,19 @@ function createSoText(splittetMsg) {
 }
 
 function printWelcomeMsgToConsole() {
-    let botname = constants.BOTNAME;
-    let botversion = constants.BOTVERSION;
-
-    console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    console.log("    ⢠⡏⠉⠉⠉⠉⠉⠉⡇⠀⠀     " + botname + " - Twitch Channel Bot");
-    console.log("    ⢸⡇⠀⠀⡇⠀⡇⠀⡇            Version " +  botversion);
-    console.log("    ⢸⡇⠀⠀⠀⠀⠀⡠⠃");
-    console.log("    ⢸⣿⣿⣤⣾⡿⠋               (c) by w8abit_de ");
-    console.log("       ⠘⠋                twitch.tv/w8abit_de");
-    console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    console.log("╔═══════════════════════════════════════════════════╗");
+    console.log("║                                                   ║");
+    console.log("║        Twitch Channel Bot                         ║");
+    console.log("║        (c) 2022 by w8abit_de                      ║");
+    console.log("║                                                   ║");
+    console.log("║        Twitch: https://twitch.tv/w8abit_de        ║");
+    console.log("║        GitHub: https://bit.ly/3WScD11             ║");
+    console.log("║                                                   ║");
+    console.log("╚═══════════════════════════════════════════════════╝");
 }
 
 function printWelcomeMsgToChat(client) {
-    let channels = constants.JOINED_CHANNELS;
+    let channels = getChannels();
 
     linfo("", `Channels: ${channels}`);
 
@@ -450,7 +461,7 @@ function printWelcomeMsgToChat(client) {
 }
 
 function printLeaveMsgToChat(client) {
-    let channels = constants.JOINED_CHANNELS;
+    let channels = getChannels();
 
     linfo("", `Channels: ${channels}`);
 
@@ -458,4 +469,14 @@ function printLeaveMsgToChat(client) {
         linfo(element, `Bin mal weg... Haut rein!`);
         client.say(element, `Bin mal weg... Haut rein!`);
     }
+}
+
+export function getChannels() {
+    let channels = [];
+
+    for (let i = 2; i < process.argv.length; i++) {
+        channels.push(process.argv[i]);
+    }
+
+    return channels;
 }

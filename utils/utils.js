@@ -1,5 +1,4 @@
 import {constants} from "../settings/botsettings.js"
-import {ltrace} from "./logger.js";
 
 export function reformatUsername(channel, username) {
     if (username && username.startsWith("@")) {
