@@ -6,6 +6,6 @@ Das Ganze Projekt ist noch in einem frühen BETA-Stadium und noch nicht zum prod
 
 Dennoch sind hier alle Kernfunktionen einsehbar.
 
-Alle Details sind den Wiki-Seiten zu entnehmen.
+Alle Details sind den [Wiki-Seiten](https://github.com/magicmarcy/w8abot_twitch/wiki) zu entnehmen.
 
 ## (c) 2022 by w8abit_de@Twitch / @magicmarcy
