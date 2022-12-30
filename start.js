@@ -1,29 +1,14 @@
 /**
- * TWITCH BOT (Make a new account pls)
- *
- * ToDo:
- * All command to control the bot/commands should be called with !bot -> e.g. !bot command edit duo @MuchoButcho spielt mit w8abit_DE zusammen
- *
- * SQLite Database:
- * - channels to join
- * - commands
- *   - select from command -> if command is there get the elements of the command
- * - users
- *   - number of lurk
- *   - number of XYZ
- *   - number of messages in the channel (maybe by a single select)
- *   - last message (date/time)
- * - logging per channel, per date
- *
- * Functions:
- * - adding, editing, delete commands
- * - checking if Bot is Mod
- *
- * Commands:
- * - lurk
- * - duo
- * - hype
- * - usw.
+ * w8abot - Ein neuer Twitch Channel Bot fuer deine Community
+ * 
+ * Dieser Bot wurde geschrieben und entwickelt von @magicmarcy / @w8abit_de
+ * Alle Ausgaben des Bots sind auf deutsch!
+ * 
+ * Dokumentation und Kommentare: deutsch
+ * Codesprache: englisch
+ * 
+ * @see https://github.com/magicmarcy/w8abot_twitch/blob/main/README.md Dokumentation
+ * @see https://github.com/magicmarcy/w8abot_twitch/blob/main/COMMANDS.md Command Uebersicht
  */
 
 import {linfo, ltrace, msglog} from "./utils/logger.js";
@@ -45,10 +30,10 @@ import {getParam} from "./utils/databaseUtils.js";
 import {addEvent, deleteEvent, startEvent} from "./useractions/ticket.js";
 import {PARAMKONST} from "./utils/konst.js";
 
-// client connection
+// Client connection
 const client = createClient();
 
-// connection handler
+// Connection handler
 client.on('connected', onConnectedHandler);
 client.on('disconnected', onDisconnectedHandler);
 
