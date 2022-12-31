@@ -3,9 +3,9 @@
   "version": "1.87.0",
   "type": "module",
   "description": "Private Mod-Bot by w8abit_de",
-  "main": "index.js",
+  "main": "start.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon start.js"
   },
   "author": "w8abit_de",
   "license": "ISC",
@@ -13,6 +13,7 @@
     "@tsed/logger-file": "^6.3.3",
     "dotenv": "^10.0.0",
     "fast-xml-parser": "^4.0.12",
+    "mkdirp": "^1.0.4",
     "node-console": "^0.3.36",
     "node-fetch": "^3.3.0",
     "nodemon": "^2.0.20",

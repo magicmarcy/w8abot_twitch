@@ -1,6 +1,6 @@
 import sqlite3 from "sqlite3";
 import {constants} from "../settings/botsettings.js";
-import {ltrace} from "./logger.js";
+import {lerror, ltrace} from "./logger.js";
 import {reformatChannelname, reformatUsername} from "./utils.js";
 import {TEXTKONST} from "./konst.js";
 

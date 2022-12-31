@@ -55,6 +55,16 @@ export function isModOrStreamer(tags) {
     return result;
 }
 
+export function isBroadcaster(tags) {
+    let result = false;
+
+    if (tags != null && tags.badges != null) {
+        result = tags.badges.hasOwnProperty(constants.STREAMER);
+    }
+
+    return result;
+}
+
 export function isBot(tags) {
     let result = false;
 

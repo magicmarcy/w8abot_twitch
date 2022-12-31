@@ -8,6 +8,7 @@
  *   - OAUTH: Dein OAuth-Key
  * - In /settings/botsettings.js den Botname auf deinen Botnamen aendern
  * - Starten mit: node start.js CHANNELNAME
+ * - Zur Einrichtung ?setup in den Chat (du MUSST der Broadcaster sein!)
  * ------------------------------------------------------------------------
  * 
  * Dieser Bot wurde geschrieben und entwickelt von @magicmarcy / @w8abit_de
@@ -20,9 +21,9 @@
  * @see https://github.com/magicmarcy/w8abot_twitch/blob/main/COMMANDS.md Command Uebersicht
  */
 
-import {linfo, ltrace, lwarn, msglog} from "./utils/logger.js";
+import {lerror, linfo, ltrace, lwarn, msglog} from "./utils/logger.js";
 import {createClient} from "./utils/clientutils.js";
-import {isBot, isModOrStreamer, splitAndResolveString} from "./utils/utils.js";
+import {isBot, isBroadcaster, isModOrStreamer, splitAndResolveString} from "./utils/utils.js";
 import {addOrUpdateChannelPoints, getPointsForUser, givePoints, setPoints, showPoints, showTopPoints} from "./useractions/points.js";
 import {hugUser} from "./useractions/hug.js";
 import {gamble} from "./useractions/gamble.js";
@@ -38,6 +39,9 @@ import {performUpdateParamvalue} from "./useractions/modaction.js";
 import {getParam} from "./utils/databaseUtils.js";
 import {addEvent, deleteEvent, startEvent} from "./useractions/ticket.js";
 import {PARAMKONST} from "./utils/konst.js";
+import mkdirp from "mkdirp";
+import sqlite3 from "sqlite3";
+import * as fs from "fs";
 
 // Client connection
 const client = createClient(getChannels());
@@ -50,6 +54,13 @@ client.connect().then(_r => console.log('Connected'));
 
 client.on('message', async (channel, tags, message, self) => {
     msglog(channel, tags.username, message);
+
+    if (message === '?setup' && isBroadcaster(tags)) {
+        console.log("hier kommen wir nicht an, oder?")
+        doSetup(client, channel);
+
+        return;
+    }
 
     let commandSign = await getParam(channel, PARAMKONST.COMMAND, "?");
 
@@ -83,6 +94,9 @@ client.on('message', async (channel, tags, message, self) => {
                     case 'help':
                     case 'info':
                         client.say(channel, 'Hi, ich bin der Twitch Channel Bot in Version ' + constants.BOTVERSION + '! Alle Infos hier: ' + constants.GITHUBURL);
+                        break;
+                    case 'test':
+                        client.say(channel, `Hi ${tags.username}, ich bin da ;-)`);
                         break;
                     case 'givepoints':
                         givePoints(client, channel, tags, splittedMsg);
@@ -471,7 +485,7 @@ function printLeaveMsgToChat(client) {
     }
 }
 
-export function getChannels() {
+function getChannels() {
     let channels = [];
 
     for (let i = 2; i < process.argv.length; i++) {
@@ -480,3 +494,159 @@ export function getChannels() {
 
     return channels;
 }
+
+function doSetup(client, channel) {
+    const DB_botdata = './data/botdata.db';
+    const DB_settings = './data/settings.db';
+
+    if (fs.existsSync(DB_botdata) && fs.existsSync(DB_settings)) {
+        client.say(channel, `Setup wurde bereits durchgeführt!`);
+        return;
+    }
+
+    try {
+        fs.mkdirSync('./data/', { recursive: true })
+
+
+        if (fs.existsSync(DB_botdata)) {
+            ltrace(channel, `File "${DB_botdata}" exists`);
+        } else {
+            ltrace(channel, `File "${DB_botdata}" does not exists, creating...`)
+
+            fs.writeFile(DB_botdata, '', function (err) {
+                if (err) {
+                    client.say(channel, `2 Fehler beim Setup aufgetreten!`);
+                    return;
+                }
+                console.log(`File "${DB_botdata}" is created successfully.`);
+            });
+        }
+
+        if (fs.existsSync(DB_settings)) {
+            ltrace(channel, `File "${DB_settings}" exists`)
+        } else {
+            ltrace(channel, `File "${DB_settings}" does not exists, creating...`)
+
+            fs.writeFile(DB_settings, '', function (err) {
+                if (err) {
+                    client.say(channel, `3 Fehler beim Setup aufgetreten!`);
+                    return;
+                }
+                console.log(`File "${DB_settings}" created successfully.`);
+            });
+        }
+
+        if (fs.existsSync(DB_botdata) && fs.existsSync(DB_settings)) {
+            createBotdata(DB_botdata);
+            createSettings(DB_settings);
+        }
+    } catch (err) {
+        console.log(err);
+
+        client.say(channel, `4 Fehler beim Setup aufgetreten!`);
+
+        return;
+    }
+
+    client.say(channel, `X Setup erfolgreich durchgeführt!`);
+
+}
+
+function createBotdata(DB_botdata) {
+    let db = new sqlite3.Database(DB_botdata);
+
+    let createDuellTable = 'CREATE TABLE "DUELL" ("CHANNEL" TEXT, "CHALLENGER" TEXT, "OPPONENT" TEXT,"AMOUNT" INTEGER, "CREATED" NUMERIC)';
+    db.exec(createDuellTable);
+
+    let createEventTable = 'CREATE TABLE "EVENT" ("CHANNEL" TEXT,"NAME" TEXT,"MAXENTRIES" INTEGER DEFAULT 1,"COST" INTEGER,"ACTIVE" INTEGER DEFAULT 0, "WINNER" TEXT)';
+    db.exec(createEventTable);
+
+    let createEventEntriesTable = 'CREATE TABLE "EVENTENTRIES" ("USERNAME" TEXT,"EVENTNAME" TEXT,"TIMESTAMP" INTEGER)';
+    db.exec(createEventEntriesTable);
+
+    let createHotTable = 'CREATE TABLE "HOT" ("CHANNEL" TEXT,"USERNAME" TEXT,"HOTLEVEL" INTEGER, "LASTCHECK" TEXT)';
+    db.exec(createHotTable);
+
+    let createHugTable = 'CREATE TABLE "HUG" ("CHANNEL" TEXT,"HUGGER" TEXT,"TOHUG" TEXT,"AMOUNT" INTEGER)';
+    db.exec(createHugTable);
+
+    let createPointsTable = 'CREATE TABLE "POINTS" ("CHANNEL" TEXT,"USERNAME" TEXT,"POINTS" NUMERIC)';
+    db.exec(createPointsTable);
+}
+
+function createSettings(DB_settings) {
+    let db = new sqlite3.Database(DB_settings);
+
+    let createSettingsTable = 'CREATE TABLE "PARAMS" ("NAME" TEXT NOT NULL,"VALUE" TEXT NOT NULL,"CHANNEL" TEXT NOT NULL, PRIMARY KEY("NAME","VALUE","CHANNEL"))';
+    db.exec(createSettingsTable);
+
+    insertParams(DB_settings);
+}
+
+function insertParams(DB_settings) {
+    let db = new sqlite3.Database(DB_settings);
+
+    let insertCommand = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("COMMAND", "?", "####")';
+    db.exec(insertCommand);
+
+    let insertEventsActive = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("EVENTS_ACTIVE", "0", "####")';
+    db.exec(insertEventsActive);
+
+    let insertPointsPerMsg = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("POINTS_PER_MSG", "0", "####")';
+    db.exec(insertPointsPerMsg);
+
+    let insertPointsPerMsgActive = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("POINTS_PER_MSG_ACTIVE", "0", "####")';
+    db.exec(insertPointsPerMsgActive);
+
+    let insertPointsPerMsgMulti = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("POINTS_PER_MSG_MULTI", "1", "####")';
+    db.exec(insertPointsPerMsgMulti);
+
+    let insertGambleActive = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("GAMBLE_ACTIVE", "0", "####")';
+    db.exec(insertGambleActive);
+
+    let insertGambleChanceToWin = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("GAMBLE_CHANCE_TO_WIN", "100", "####")';
+    db.exec(insertGambleChanceToWin);
+
+    let insertPointsPerSub = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("POINTS_PER_SUB", "1000", "####")';
+    db.exec(insertPointsPerSub);
+
+    let insertPointsPerResub = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("POINTS_PER_RESUB", "1000", "####")';
+    db.exec(insertPointsPerResub);
+
+    let insertPointsPerSubgift = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("POINTS_PER_SUBGIFT", "1000", "####")';
+    db.exec(insertPointsPerSubgift);
+
+    let insertPointsPerRaid = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("POINTS_PER_RAID", "1000", "####")';
+    db.exec(insertPointsPerRaid);
+
+    let insertPointsPerRaider = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("POINTS_PER_RAIDER", "50", "####")';
+    db.exec(insertPointsPerRaider);
+
+    let insertSlotsActive = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("SLOTS_ACTIVE", "0", "####")';
+    db.exec(insertSlotsActive);
+
+    let insertMultiplySlotsTwoOfAKind = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("MULTIPLY_SLOTS_TWO_OF_A_KIND", "2", "####")';
+    db.exec(insertMultiplySlotsTwoOfAKind);
+
+    let insertMultiplySlotsThreeOfAKind = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("MULTIPLY_SLOTS_THREE_OF_A_KIND", "3", "####")';
+    db.exec(insertMultiplySlotsThreeOfAKind);
+
+    let insertMultiplySlotsSpecial = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("MULTIPLY_SLOTS_SPECIAL", "5", "####")';
+    db.exec(insertMultiplySlotsSpecial);
+
+    let insertSchneeballActive = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("SCHNEEBALL_ACTIVE", "0", "####")';
+    db.exec(insertSchneeballActive);
+
+    let insertHugActive = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("HUG_ACTIVE", "0", "####")';
+    db.exec(insertHugActive);
+
+    let insertDuellActive = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("DUELL_ACTIVE", "0", "####")';
+    db.exec(insertDuellActive);
+
+    let insertHotActive = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("HOT_ACTIVE", "0", "####")';
+    db.exec(insertHotActive);
+
+    let insertTicketActive = 'INSERT INTO PARAMS ("NAME", "VALUE", "CHANNEL") VALUES ("TICKET_ACTIVE", "0", "####")';
+    db.exec(insertTicketActive);
+}
+
