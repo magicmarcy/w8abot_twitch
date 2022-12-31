@@ -96,6 +96,13 @@ VERWENDUNG       | BEISPIEL        | ERGEBNIS |
 -----------------|-----------------|----------|
 ```?modcheck```  | ```?modcheck``` | [13:37] w8abot: Hey w8abit_de, es sind folgende Mods hier: streamelements,w8abot
 
+### &star; SOCIALS
+Zeigt die Social Einträge des Kanals an (sofern welche angelegt wurden)
+
+VERWENDUNG       | BEISPIEL       | ERGEBNIS |
+-----------------|----------------|----------|
+```?socials```  | ```?socials``` | [13:37] w8abot: Meine Socials: Instagram: https://bit.ly/3LVNXA3  Katzigram: https://bit.ly/3helzuP 
+
 ## WORK IN PROGRESS
 
 Prioritätenorder:
@@ -157,6 +164,15 @@ VERWENDUNG         | BEISPIEL                              | ERGEBNIS |
 -------------------|---------------------------------------|----------|
 ```?givepoints PUNKTE USERNAME```  | ```?givepoints 100 @StreamElements``` | [13:37] w8abot: Es wurden 100 Punkte dem Punktestand von @streamelements hinzugefügt. Damit hat @streamelements nun 100 Punkte.
 ```?setpoints PUNKTE USERNAME```  | ```?setpoints 500 @StreamElements```  | [13:37] w8abot: @w8abit_de hat die Punkte von @streamelements auf 500 geändert.
+
+### &star; ADDSOCIAL / EDITSOCIAL / REMOVESOCIAL
+Ermöglicht die Bearbeitung der Social-Einträge.
+
+VERWENDUNG         | BEISPIEL                                         | ERGEBNIS |
+-------------------|--------------------------------------------------|----------|
+```?addsocial NAME LINk```  | ```?addsocial Twitch https://twitch.tv/xyz```    | [13:37] w8abot: Eintrag hinzugefügt
+```?editsocial NAME LINK```  | ```?editsocial Twitch https://twitch.tv/abc```   | [13:37] w8abot: Eintrag aktualisiert
+```?removesocial NAME```  | ```?removesocial Twitch``` | [13:37] w8abot: Eintrag gelöscht
 
 ### &star; UPDATEPARAM
 Ermöglicht das Aktualisieren eines Parameters (siehe Beschreibung #Parameterdokumentation).

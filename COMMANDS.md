@@ -14,6 +14,7 @@ Command | Beschreibung |
 ```?punkte``` | Hier erfährst du deinen aktuellen Punktestand (alternativ ?points)
 ```?top``` | Gibt die Top 5 der User nach Punkten aus
 ```?modcheck``` | Gibt zurück, welche Mods gerade aktiv sind
+```?socials``` | Zeigt die Linkliste des Streamers an
 
 ## TLDR: Commandliste für Mods & Streamer
 Command | Beschreibung |
@@ -24,3 +25,6 @@ Command | Beschreibung |
 ```?addevent NAME MAXENTRIES PRICEPERTICKET``` | Fügt ein neues Event hinzu. Ist aber noch nicht aktiv! IN PROGRESS!
 ```?startevent NAME``` | Startet das Event IN PROGRESS!
 ```?deleteevent NAME``` | Löscht das Event (wenn ist NICHT aktiv ist) IN PROGRESS!
+```?addsocial NAME LINK``` | Fügt einen neuen Social-Eintrag hinzu
+```?editsocial NAME LINK``` | Bearbeitet einen vorhandenen Social-Eintrag
+```?removesocial NAME``` | Löscht einen vorhandenen Social-Eintrag

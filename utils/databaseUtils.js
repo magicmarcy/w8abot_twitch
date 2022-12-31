@@ -216,3 +216,51 @@ export async function checkExistingEvent(channel, eventname) {
     });
 }
 
+export async function existsTable(channel, tablename) {
+    return await new Promise((resolve) => {
+        let db = new sqlite3.Database('./' + constants.DATABASENAME);
+
+        let statement = createStatement("SELECT name FROM sqlite_schema WHERE type='table' AND name= :1", [tablename]);
+
+        ltrace(channel, `existsTable() -> Folgender SQL wird ausgefuehrt: ${statement}`);
+
+        db.get(statement, [], (err, row) => {
+            if (err) {
+                ltrace(channel, `existsTable() -> Fehler beim Select, gebe 0 zurueck!`);
+                resolve("0");
+            }
+            if (row) {
+                ltrace(channel, `existsTable() -> Tabelle vorhanden!`);
+                resolve("1");
+            } else {
+                ltrace(channel, `existsTable() -> Tabelle nicht gefunden, gebe 0 zurueck!`);
+                resolve("0");
+            }
+        });
+    });
+}
+
+export async function existsSocialEntry(channel, name) {
+    return await new Promise((resolve) => {
+        let channelName = reformatChannelname(channel);
+
+        let db = new sqlite3.Database('./' + constants.DATABASENAME);
+        let statement = createStatement("SELECT NAME FROM SOCIALS WHERE LOWER(NAME) = :1 AND LOWER(CHANNEL) = :2", [name.toLowerCase(), channelName]);
+
+        ltrace(channel, `existsSocialEntry() -> Folgender SQL wird ausgefuehrt: ${statement}`);
+
+        db.get(statement, [], (err, row) => {
+            if (err) {
+                ltrace(channel, `existsSocialEntry() -> Fehler beim Select, gebe 0 zurueck!`);
+                resolve("0");
+            }
+            if (row) {
+                ltrace(channel, `existsSocialEntry() -> Eintrag bereits vorhanden!`);
+                resolve("1");
+            } else {
+                ltrace(channel, `existsSocialEntry() -> Kein Eintrag gefunden, gebe 0 zurueck!`);
+                resolve("0");
+            }
+        });
+    });
+}

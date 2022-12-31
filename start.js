@@ -41,6 +41,7 @@ import {addEvent, deleteEvent, startEvent} from "./useractions/ticket.js";
 import {PARAMKONST} from "./utils/konst.js";
 import sqlite3 from "sqlite3";
 import * as fs from "fs";
+import {addSocial, editSocial, removeSocial, showSocials} from "./useractions/socials.js";
 
 // Client connection
 const client = createClient(getChannels());
@@ -121,8 +122,18 @@ client.on('message', async (channel, tags, message, self) => {
                         // Prueft dann auch, wer davon onine ist
                         performWhoToRaid(client, channel, tags, message);
                         break;
+                    case 'addsocial':
+                        await addSocial(client, channel, tags, message);
+                        break;
+                    case 'editsocial':
+                        await editSocial(client, channel, tags, message);
+                        break;
+                    case 'removesocial':
+                        await removeSocial(client, channel, tags, message);
+                        break;
                     case 'killbot':
                         lwarn(channel, `Bot via Command gestoppt!`);
+                        client.say(channel, `!lurk Ich bin dann mal weg... :wave:`);
                         process.exit(1);
                 }
             }
@@ -170,6 +181,12 @@ client.on('message', async (channel, tags, message, self) => {
                         break;
                     case 'accept':
                         await acceptDuell(client, channel, tags, splittedMsg);
+                        break;
+                    case 'socials':
+                        await showSocials(client, channel, tags, message);
+                        break;
+                    case 'commands':
+                        client.say(channel, `@${tags.username.toLowerCase()} eine Übersicht all meiner Commands gibt's hier: https://bit.ly/3Vvgb8k`);
                         break;
                 }
             }
