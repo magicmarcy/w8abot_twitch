@@ -21,7 +21,7 @@
  * @see https://github.com/magicmarcy/w8abot_twitch/blob/main/COMMANDS.md Command Uebersicht
  */
 
-import {lerror, linfo, ltrace, lwarn, msglog} from "./utils/logger.js";
+import {linfo, ltrace, lwarn, msglog} from "./utils/logger.js";
 import {createClient} from "./utils/clientutils.js";
 import {isBot, isBroadcaster, isModOrStreamer, splitAndResolveString} from "./utils/utils.js";
 import {addOrUpdateChannelPoints, getPointsForUser, givePoints, setPoints, showPoints, showTopPoints} from "./useractions/points.js";
@@ -39,7 +39,6 @@ import {performUpdateParamvalue} from "./useractions/modaction.js";
 import {getParam} from "./utils/databaseUtils.js";
 import {addEvent, deleteEvent, startEvent} from "./useractions/ticket.js";
 import {PARAMKONST} from "./utils/konst.js";
-import mkdirp from "mkdirp";
 import sqlite3 from "sqlite3";
 import * as fs from "fs";
 
