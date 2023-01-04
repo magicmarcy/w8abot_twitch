@@ -18,6 +18,29 @@ export function reformatChannelname(channelnane) {
     }
 }
 
+export function timeConverter(UNIX_timestamp) {
+    let timestamp = UNIX_timestamp / 1000;
+    let a = new Date(timestamp * 1000);
+    let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    let year = a.getFullYear();
+    let month = months[a.getMonth()];
+    let date = a.getDate();
+    let hour = a.getHours();
+    let min = a.getMinutes();
+
+    if (hour < 10) {
+        hour = "0" + hour;
+    }
+
+    if (min < 10) {
+        min = "0" + min;
+    }
+
+    let time = date + '. ' + month + ' ' + year + ' ' + hour + ':' + min + ' Uhr';
+
+    return time;
+}
+
 export function getCurrentDateTimeString() {
     let current = new Date();
     let month = (current.getMonth() + 1) < 10 ? '0' + (current.getMonth() + 1) : (current.getMonth() + 1);

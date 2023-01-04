@@ -188,7 +188,7 @@ export function showTopPoints(client, channel, tags, splittedMsg) {
 }
 
 // ?givepoints 1000 @w8abit_de
-export function givePoints(client, channel, tags, splittedMsg) {
+export async function givePoints(client, channel, tags, splittedMsg) {
     let commandTo = splittedMsg[2] ? reformatUsername(channel, splittedMsg[2]) : "";
     let channelName = reformatChannelname(channel);
     let amount = splittedMsg[1];
@@ -202,7 +202,7 @@ export function givePoints(client, channel, tags, splittedMsg) {
     }
 
     if (commandTo === "") {
-        lwarn(channel, "givePoints() -> du muss '?setpoints WERT USER eingeben!");
+        lwarn(channel, "givePoints() -> du muss '?givepoints WERT USER eingeben!");
         client.say(channel, "du muss '?setpoints WERT USER eingeben!");
         return;
     }
@@ -210,37 +210,39 @@ export function givePoints(client, channel, tags, splittedMsg) {
     let statement = createStatement("SELECT POINTS FROM POINTS WHERE LOWER(CHANNEL) = :1 AND LOWER(USERNAME) = :2", [channelName, commandTo]);
     ltrace(channel, `givePoints() -> ${statement}`);
 
-    let db = getDatabase();
-    db.get(statement, (error, row) => {
-        if (error) {
-            lerror(channel, `givePoints() -> Fehler beim Ausführen des SELECT Statements`);
-            client.say(channel, `Hier ist leider etwas schiefgegangen... sry`);
-        } else {
-            if (row) {
-                let userPoints = parseInt(row['POINTS']);
-                let newPoints = userPoints + parseInt(amount);
-                let statement = createStatement("UPDATE POINTS SET POINTS = :1 WHERE LOWER(CHANNEL) = :2 AND LOWER(USERNAME) = :3", [newPoints, channelName, commandTo]);
-                ltrace(channel, `givePoints() -> ${statement}`);
-                db.exec(statement);
-
-                let selectStatement = createStatement("SELECT POINTS FROM POINTS WHERE LOWER(CHANNEL) = :1 AND LOWER(USERNAME) = :2", [channelName, commandTo]);
-                ltrace(channel, `givePoints() -> ${selectStatement}`);
-                db.get(selectStatement, (error, row) => {
-                    if (!error && row) {
-                        ltrace(channel, `givePoints() -> Es wurden ${amount} Punkte dem Punktestand von @${commandTo} hinzugefügt. Damit hat @${commandTo} nun ${newPoints} Punkte.`);
-                        client.say(channel, `Es wurden ${amount} Punkte dem Punktestand von @${commandTo} hinzugefügt. Damit hat @${commandTo} nun ${newPoints} Punkte.`);
-                    }
-                });
+    if (amount > 0) {
+        let db = getDatabase();
+        db.get(statement, (error, row) => {
+            if (error) {
+                lerror(channel, `givePoints() -> Fehler beim Ausführen des SELECT Statements`);
+                client.say(channel, `Hier ist leider etwas schiefgegangen... sry`);
             } else {
-                let statement = createStatement("INSERT INTO POINTS ('CHANNEL', 'USERNAME', 'POINTS') VALUES (:1, :2, :3)", [channelName, commandTo, amount]);
-                ltrace(channel, `givePoints() -> ${statement}`);
-                db.exec(statement);
+                if (row) {
+                    let userPoints = parseInt(row['POINTS']);
+                    let newPoints = userPoints + parseInt(amount);
+                    let statement = createStatement("UPDATE POINTS SET POINTS = :1 WHERE LOWER(CHANNEL) = :2 AND LOWER(USERNAME) = :3", [newPoints, channelName, commandTo]);
+                    ltrace(channel, `givePoints() -> ${statement}`);
+                    db.exec(statement);
 
-                ltrace(channel, `givePoints() -> Es wurden ${amount} Punkte dem Punktestand von @${commandTo} hinzugefügt. Damit hat @${commandTo} nun ${amount} Punkte.`);
-                client.say(channel, `Es wurden ${amount} Punkte dem Punktestand von @${commandTo} hinzugefügt. Damit hat @${commandTo} nun ${amount} Punkte.`);
+                    let selectStatement = createStatement("SELECT POINTS FROM POINTS WHERE LOWER(CHANNEL) = :1 AND LOWER(USERNAME) = :2", [channelName, commandTo]);
+                    ltrace(channel, `givePoints() -> ${selectStatement}`);
+                    db.get(selectStatement, (error, row) => {
+                        if (!error && row) {
+                            ltrace(channel, `givePoints() -> Es wurden ${amount} Punkte dem Punktestand von @${commandTo} hinzugefügt. Damit hat @${commandTo} nun ${newPoints} Punkte.`);
+                            client.say(channel, `Es wurden ${amount} Punkte dem Punktestand von @${commandTo} hinzugefügt. Damit hat @${commandTo} nun ${newPoints} Punkte.`);
+                        }
+                    });
+                } else {
+                    let statement = createStatement("INSERT INTO POINTS ('CHANNEL', 'USERNAME', 'POINTS') VALUES (:1, :2, :3)", [channelName, commandTo, amount]);
+                    ltrace(channel, `givePoints() -> ${statement}`);
+                    db.exec(statement);
+
+                    ltrace(channel, `givePoints() -> Es wurden ${amount} Punkte dem Punktestand von @${commandTo} hinzugefügt. Damit hat @${commandTo} nun ${amount} Punkte.`);
+                    client.say(channel, `Es wurden ${amount} Punkte dem Punktestand von @${commandTo} hinzugefügt. Damit hat @${commandTo} nun ${amount} Punkte.`);
+                }
             }
-        }
-    });
+        });
+    }
 }
 
 export async function setPoints(client, channel, tags, splittedMsg) {

@@ -1,7 +1,7 @@
 import sqlite3 from "sqlite3";
 import {constants} from "../settings/botsettings.js";
-import {lerror, ltrace} from "./logger.js";
-import {reformatChannelname, reformatUsername} from "./utils.js";
+import {lerror, ltrace, lwarn} from "./logger.js";
+import {getCurrentDateTimeString, reformatChannelname, reformatUsername} from "./utils.js";
 import {TEXTKONST} from "./konst.js";
 
 export function getDatabase() {
@@ -260,6 +260,165 @@ export async function existsSocialEntry(channel, name) {
             } else {
                 ltrace(channel, `existsSocialEntry() -> Kein Eintrag gefunden, gebe 0 zurueck!`);
                 resolve("0");
+            }
+        });
+    });
+}
+
+export async function getActiveQuiz(channel) {
+    let channelName = reformatChannelname(channel);
+
+    return await new Promise((resolve) => {
+        let db = getDatabase();
+        const statement = createStatement("SELECT CHANNEl, QUIZID, TIMESTAMP, ACTIVE FROM QUIZRUN WHERE LOWER(CHANNEL) = :1 AND ACTIVE = 1", [channelName]);
+
+        ltrace(channel, `getActiveQuiz() -> Folgender SQL wird ausgefuehrt: ${statement}`);
+
+        db.get(statement, [], (err, row) => {
+            if (err) {
+                ltrace(channel, `getActiveQuiz() -> Fehler beim Select aufgetreten!`);
+                resolve(TEXTKONST.LEERSTRING);
+            }
+            if (row) {
+                ltrace(channel, `getActiveQuiz() -> Channel: ${channelName}, Quiz-Active: ${row['ACTIVE']}`);
+                resolve(row);
+            } else {
+                ltrace(channel, `getActiveQuiz() -> Es konnte keine Quiz gefunden werden`);
+                resolve(TEXTKONST.LEERSTRING);
+            }
+        });
+    });
+}
+
+export async function getAllQuizzes(channel) {
+    return await new Promise((resolve) => {
+        let db = getDatabase();
+        let resultlist = [];
+
+        const statement = "SELECT ID id, QUESTION question, ANSWER answer FROM QUIZ";
+
+        db.all(statement, (error, row) => {
+            if (error) {
+                lerror(channel, "getAllQuizzes() -> Fehler beim Select-Statement!");
+                lerror(channel, "getAllQuizzes() -> Es tut mir leid, ich kann momentan keine Verbindung zur Datenbank herstellen :-(")
+            } else {
+                if (row) {
+                    // Alle Ergebnisse in die Liste packen
+                    row.forEach((singlerow) => {
+                        resultlist.push([singlerow.id, singlerow.question, singlerow.answer])
+                    });
+
+                    resolve(resultlist);
+                } else {
+                    lwarn(channel, "getAllQuizzes() -> Keine Daten vorhanden")
+                }
+            }
+        });
+    });
+}
+
+export async function insertQuizRun(quiz, channel) {
+    let channelName = reformatChannelname(channel);
+    let timestamp = Date.now();
+    let quizid = quiz[0];
+    let db = getDatabase();
+
+    const statement = createStatement("INSERT INTO QUIZRUN(CHANNEL, QUIZID, TIMESTAMP, ACTIVE) VALUES(:1, :2, :3, 1)", [channelName, quizid, timestamp]);
+
+    db.exec(statement);
+}
+
+export async function stopQuizRun(channel) {
+    let channelName = reformatChannelname(channel);
+    let db = getDatabase();
+
+    // erstmal loeschen wir alle alten Quizze die ACTIVE = 0 haben...
+    const deleteStatement = createStatement("DELETE FROM QUIZRUN WHERE LOWER(CHANNEL) = :1 AND ACTIVE = 0", [channelName]);
+    db.exec(deleteStatement);
+
+    const statement = createStatement("UPDATE QUIZRUN SET ACTIVE = 0 WHERE LOWER(CHANNEL) = :1 AND ACTIVE = 1", [channelName]);
+    db.exec(statement);
+}
+
+export async function getAllAnswers(channel) {
+    return await new Promise((resolve) => {
+        let channelName = reformatChannelname(channel);
+        let db = getDatabase();
+        let resultlist = [];
+
+        const statement = createStatement("SELECT CHANNEL channel, QUIZID quizid, USERNAME username, ANSWER answer, TIMESTAMP timestamp FROM QUIZ_ANSWERS WHERE LOWER(CHANNEL) = :1", [channelName]);
+
+        db.all(statement, (error, row) => {
+            if (error) {
+                lerror(channel, "getAllAnswers() -> Fehler beim Select-Statement!");
+                lerror(channel, "getAllAnswers() -> Es tut mir leid, ich kann momentan keine Verbindung zur Datenbank herstellen :-(")
+            } else {
+                if (row) {
+                    // Alle Ergebnisse in die Liste packen
+                    row.forEach((singlerow) => {
+                        resultlist.push([singlerow.channel, singlerow.quizid, singlerow.username, singlerow.answer, singlerow.timestamp])
+                    });
+
+                    resolve(resultlist);
+                } else {
+                    lwarn(channel, "getAllAnswers() -> Keine Daten vorhanden")
+                }
+            }
+        });
+    });
+}
+
+export async function getQuizById(channel, quizid) {
+    let channelName = reformatChannelname(channel);
+
+    return await new Promise((resolve) => {
+        let db = getDatabase();
+        const statement = createStatement("SELECT ID id, QUESTION question, ANSWER answer FROM QUIZ WHERE ID = :1", [quizid]);
+
+        ltrace(channel, `getQuizById() -> Folgender SQL wird ausgefuehrt: ${statement}`);
+
+        let result = [];
+
+        db.get(statement, [], (err, row) => {
+            if (err) {
+                ltrace(channel, `getQuizById() -> Fehler beim Select aufgetreten!`);
+                resolve(TEXTKONST.LEERSTRING);
+            }
+            if (row) {
+                ltrace(channel, `getQuizById() -> QuizID: ${row.id}, Quiz-Active: ${row.answer}`);
+                result.push([row.id, row.question, row.answer]);
+                resolve(result);
+            } else {
+                ltrace(channel, `getQuizById() -> Es konnte keine Quiz gefunden werden`);
+                resolve(TEXTKONST.LEERSTRING);
+            }
+        });
+    });
+}
+
+export async function getQuizRunFromChannel(channel) {
+    let channelName = reformatChannelname(channel);
+
+    return await new Promise((resolve) => {
+        let db = getDatabase();
+        const statement = createStatement("SELECT CHANNEL channel, QUIZID quizid, TIMESTAMP timestamp, ACTIVE active FROM QUIZRUN WHERE LOWER(CHANNEL) = :1", [channelName]);
+
+        let quizrun = [];
+
+        ltrace(channel, `getQuizRunFromChannel() -> Folgender SQL wird ausgefuehrt: ${statement}`);
+
+        db.get(statement, [], (err, row) => {
+            if (err) {
+                ltrace(channel, `getQuizRunFromChannel() -> Fehler beim Select aufgetreten!`);
+                resolve(TEXTKONST.LEERSTRING);
+            }
+            if (row) {
+                ltrace(channel, `getQuizRunFromChannel() -> QuizID: ${row.quizid}, Quiz-Active: ${row.active}`);
+                quizrun.push([row.channel, row.quizid, row.timestamp, row.active]);
+                resolve(quizrun);
+            } else {
+                ltrace(channel, `getQuizRunFromChannel() -> Es konnte keine Quiz gefunden werden`);
+                resolve(TEXTKONST.LEERSTRING);
             }
         });
     });

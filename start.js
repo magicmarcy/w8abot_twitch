@@ -42,6 +42,10 @@ import {PARAMKONST} from "./utils/konst.js";
 import sqlite3 from "sqlite3";
 import * as fs from "fs";
 import {addSocial, editSocial, removeSocial, showSocials} from "./useractions/socials.js";
+import {showMapLink} from "./useractions/maps.js";
+import {performQuizAnswer, pickWinnerAndDeleteQuiz, startQuiz, stopQuiz} from "./useractions/quiz.js";
+import {performSlap} from "./useractions/slap.js";
+import {addList, addToList, performShowList, removeFromList, removeList} from "./useractions/todo.js";
 
 // Client connection
 const client = createClient(getChannels());
@@ -56,7 +60,6 @@ client.on('message', async (channel, tags, message, self) => {
     msglog(channel, tags.username, message);
 
     if (message === '?setup' && isBroadcaster(tags)) {
-        console.log("hier kommen wir nicht an, oder?")
         doSetup(client, channel);
 
         return;
@@ -93,13 +96,13 @@ client.on('message', async (channel, tags, message, self) => {
                     case 'botinfo':
                     case 'help':
                     case 'info':
-                        client.say(channel, 'Hi, ich bin der Twitch Channel Bot in Version ' + constants.BOTVERSION + '! Alle Infos hier: ' + constants.GITHUBURL);
+                        client.say(channel, 'Hi, ich bin der Twitch Channel Bot in Version ' + constants.BOTVERSION + '! Alle Infos auf GitHUb: ' + constants.GITHUBURL + ' Wenn du mich und meine Entwicklung unterstützen möchtest, freue ich mich sehr über einen Kaffee (Buy me a coffee): https://bit.ly/3IppTGj Vielen Dank! <3');
                         break;
                     case 'test':
                         client.say(channel, `Hi ${tags.username}, ich bin da ;-)`);
                         break;
                     case 'givepoints':
-                        givePoints(client, channel, tags, splittedMsg);
+                        await givePoints(client, channel, tags, splittedMsg);
                         break;
                     case 'setpoints':
                         await setPoints(client, channel, tags, splittedMsg);
@@ -131,6 +134,31 @@ client.on('message', async (channel, tags, message, self) => {
                     case 'removesocial':
                         await removeSocial(client, channel, tags, message);
                         break;
+                    case 'startquiz':
+                        await startQuiz(client, channel, tags, message);
+                        break;
+                    case 'stopquiz':
+                        await stopQuiz(client, channel, tags, message);
+                        break;
+                    case 'pickwinner':
+                        await pickWinnerAndDeleteQuiz(client, channel, tags, message);
+                        break;
+                    case 'addliste':
+                    case 'addlist':
+                        await addList(client, channel, tags, splittedMsg);
+                        break;
+                    case 'removelist':
+                    case 'removeliste':
+                        await removeList(channel, splittedMsg);
+                        break;
+                    case 'addtolist':
+                    case 'addtoliste':
+                        await addToList(channel, splittedMsg);
+                        break;
+                    case 'removefromlist':
+                    case 'removefromliste':
+                        await removeFromList(channel, splittedMsg);
+                        break;
                     case 'killbot':
                         lwarn(channel, `Bot via Command gestoppt!`);
                         client.say(channel, `!lurk Ich bin dann mal weg... :wave:`);
@@ -159,7 +187,7 @@ client.on('message', async (channel, tags, message, self) => {
                         await translatee(client, channel, tags, splittedMsg);
                         break;
                     case 'slap':
-                        performSlap(client, channel, tags, splittedMsg);
+                        await performSlap(client, channel, tags, splittedMsg);
                         break;
                     case 'schneeball':
                         await performSchneeball(client, channel, tags, splittedMsg);
@@ -187,6 +215,20 @@ client.on('message', async (channel, tags, message, self) => {
                         break;
                     case 'commands':
                         client.say(channel, `@${tags.username.toLowerCase()} eine Übersicht all meiner Commands gibt's hier: https://bit.ly/3Vvgb8k`);
+                        break;
+                    case 'map':
+                        showMapLink(client, channel, tags, message);
+                        break;
+                    case 'answer':
+                    case 'antwort':
+                        await performQuizAnswer(client, channel, tags, message);
+                        break;
+                    case 'support':
+                        client.say(channel, `Wenn du mich und meine Entwicklung unterstützen möchtest, freue ich mich sehr über einen Kaffee (Buy me a coffee): https://bit.ly/3IppTGj Vielen Dank! <3`);
+                        break;
+                    case 'liste':
+                    case 'list':
+                        await performShowList(client, channel, message);
                         break;
                 }
             }
@@ -450,7 +492,7 @@ function onDisconnectedHandler(reason) {
     process.exit(1);
 }
 
-function sleep(milliseconds) {
+export function sleep(milliseconds) {
     const date = Date.now();
     let currentDate = null;
     do {
@@ -588,6 +630,9 @@ function createBotdata(DB_botdata) {
 
     let createPointsTable = 'CREATE TABLE "POINTS" ("CHANNEL" TEXT,"USERNAME" TEXT,"POINTS" NUMERIC)';
     db.exec(createPointsTable);
+
+    let createListTable = 'CREATE TABLE "LISTS" ("CHANNEL" TEXT,"LISTNAME" TEXT,"LISTENTRY" NUMERIC, "CONTENT" TEXT)';
+    db.exec(createListTable);
 }
 
 function createSettings(DB_settings) {
@@ -666,3 +711,10 @@ function insertParams(DB_settings) {
     db.exec(insertTicketActive);
 }
 
+export async function botsay(channel, msg) {
+    try {
+        client.say(channel, msg);
+    } catch (err) {
+        //  nope
+    }
+}
