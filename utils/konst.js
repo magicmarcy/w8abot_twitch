@@ -19,7 +19,8 @@ export const PARAMKONST = Object.freeze({
     POINTS_PER_SUBGIFT: 'POINTS_PER_SUBGIFT',
     SCHNEEBALL_ACTIVE: 'SCHNEEBALL_ACTIVE',
     SLOTS_ACTIVE: 'SLOTS_ACTIVE',
-    TICKET_ACTIVE: 'TICKET_ACTIVE'
+    TICKET_ACTIVE: 'TICKET_ACTIVE',
+    FORBIDDEN_COMMAND_NAMES: 'hi,givepoints,setpoints,updateparam,addevent,startevent,deleteevent,raidoffer,addsocial,editsocial,startquiz,stopquiz,pickwinner,addliste,addlist,removeliste,removelist,addtolist,addtoliste,removefromlist,removefromliste,killbot,hug,points,punkte,top,gamble,translate,trans,slap,schneeball,modcheck,ask,hot,slots,duell,accept,deny,socials,commands,map,answer,antwort,support,botinfo,help,info,liste,list,wetter,weather,catfact'
 });
 
 export const TEXTKONST = Object.freeze({

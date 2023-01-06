@@ -13,8 +13,8 @@ export function createClient(channels) {
             secure: constants.SECURE
         },
         identity: {
-            username: process.env.USERNAME,
-            password: process.env.OAUTH
+            username: process.env['USERNAME'],
+            password: process.env['OAUTH']
         },
         channels: channels
     });

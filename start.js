@@ -36,7 +36,7 @@ import {performModCheck} from "./useractions/modCheck.js";
 import {constants} from "./settings/botsettings.js";
 import {acceptDuell, performDuell} from "./useractions/duell.js";
 import {performUpdateParamvalue} from "./useractions/modaction.js";
-import {getParam} from "./utils/databaseUtils.js";
+import {getParam, getSingleParam} from "./utils/databaseUtils.js";
 import {addEvent, deleteEvent, startEvent} from "./useractions/ticket.js";
 import {PARAMKONST} from "./utils/konst.js";
 import sqlite3 from "sqlite3";
@@ -46,6 +46,8 @@ import {showMapLink} from "./useractions/maps.js";
 import {performQuizAnswer, pickWinnerAndDeleteQuiz, startQuiz, stopQuiz} from "./useractions/quiz.js";
 import {performSlap} from "./useractions/slap.js";
 import {addList, addToList, performShowList, removeFromList, removeList} from "./useractions/todo.js";
+import {getWeather} from "./useractions/weather.js";
+import {randomCatfact} from "./useractions/catfact.js";
 
 // Client connection
 const client = createClient(getChannels());
@@ -93,13 +95,8 @@ client.on('message', async (channel, tags, message, self) => {
                 ltrace(channel, `initOnMsg() -> Command from Mod or Streamer!`)
 
                 switch (command) {
-                    case 'botinfo':
-                    case 'help':
-                    case 'info':
-                        client.say(channel, 'Hi, ich bin der Twitch Channel Bot in Version ' + constants.BOTVERSION + '! Alle Infos auf GitHUb: ' + constants.GITHUBURL + ' Wenn du mich und meine Entwicklung unterstützen möchtest, freue ich mich sehr über einen Kaffee (Buy me a coffee): https://bit.ly/3IppTGj Vielen Dank! <3');
-                        break;
-                    case 'test':
-                        client.say(channel, `Hi ${tags.username}, ich bin da ;-)`);
+                    case 'hi':
+                        await botsay(channel, `Hi @${tags.username}, ich bin da ;-)`);
                         break;
                     case 'givepoints':
                         await givePoints(client, channel, tags, splittedMsg);
@@ -161,7 +158,7 @@ client.on('message', async (channel, tags, message, self) => {
                         break;
                     case 'killbot':
                         lwarn(channel, `Bot via Command gestoppt!`);
-                        client.say(channel, `!lurk Ich bin dann mal weg... :wave:`);
+                        await botsay(channel, `!lurk Ich bin dann mal weg... :wave:`);
                         process.exit(1);
                 }
             }
@@ -214,7 +211,7 @@ client.on('message', async (channel, tags, message, self) => {
                         await showSocials(client, channel, tags, message);
                         break;
                     case 'commands':
-                        client.say(channel, `@${tags.username.toLowerCase()} eine Übersicht all meiner Commands gibt's hier: https://bit.ly/3Vvgb8k`);
+                        await botsay(channel, `@${tags.username.toLowerCase()} eine Übersicht all meiner Commands gibt's hier: https://bit.ly/3Vvgb8k`);
                         break;
                     case 'map':
                         showMapLink(client, channel, tags, message);
@@ -224,11 +221,21 @@ client.on('message', async (channel, tags, message, self) => {
                         await performQuizAnswer(client, channel, tags, message);
                         break;
                     case 'support':
-                        client.say(channel, `Wenn du mich und meine Entwicklung unterstützen möchtest, freue ich mich sehr über einen Kaffee (Buy me a coffee): https://bit.ly/3IppTGj Vielen Dank! <3`);
+                    case 'botinfo':
+                    case 'help':
+                    case 'info':
+                        await botsay(channel, `'Hi, ich bin der Twitch Channel Bot made by @w8abit_DE - Alle Infos auf GitHUb: ${constants.GITHUBURL} Wenn du mich und meine Entwicklung unterstützen möchtest, freue ich mich sehr über einen Kaffee: ${await getSingleParam(channel, "DEV_DONO_LINK", true)} Vielen Dank! <3'`);
                         break;
                     case 'liste':
                     case 'list':
                         await performShowList(client, channel, message);
+                        break;
+                    case 'wetter':
+                    case 'weather':
+                        await getWeather(channel, splittedMsg);
+                        break;
+                    case 'catfact':
+                        await randomCatfact(channel);
                         break;
                 }
             }

@@ -111,3 +111,7 @@ export function getRandomInt(min, max) {
 export function splitAndResolveString(str) {
     return str.match(/"[^"]*"|\S+/g).map(m => m.slice(0, 1) === '"'? m.slice(1, -1): m);
 }
+
+export function isEmpty(str) {
+    return str === null || str === undefined || str.length === 0 || str === ' ';
+}
