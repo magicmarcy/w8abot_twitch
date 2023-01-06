@@ -224,7 +224,7 @@ client.on('message', async (channel, tags, message, self) => {
                     case 'botinfo':
                     case 'help':
                     case 'info':
-                        await botsay(channel, `'Hi, ich bin der Twitch Channel Bot made by @w8abit_DE - Alle Infos auf GitHUb: ${constants.GITHUBURL} Wenn du mich und meine Entwicklung unterstützen möchtest, freue ich mich sehr über einen Kaffee: ${await getSingleParam(channel, "DEV_DONO_LINK", true)} Vielen Dank! <3'`);
+                        await botsay(channel, `Hi, ich bin der Twitch Channel Bot made by @w8abit_DE - Alle Infos auf GitHub: ${constants.GITHUBURL} Wenn du mich und meine Entwicklung unterstützen möchtest, freue ich mich sehr über einen Kaffee: ${await getSingleParam(channel, "DEV_DONO_LINK", true)} Vielen Dank! ♥`);
                         break;
                     case 'liste':
                     case 'list':
