@@ -11,7 +11,7 @@ Alle Details sind den [Wiki-Seiten][githubwiki] zu entnehmen.
 ## (c) 2022 by @w8abit_de / @magicmarcy 
 
 ### Socials
-[<img alt="w8abit_de on Twitch" width="22px" src="https://twitch.tv/favicon.ico" />][twitch] 
+[<img alt="w8abit_de on Twitch" width="22px" src="https://help.twitch.tv/favicon.ico" />][twitch] 
 [<img alt="w8abit_de on Twitter" width="22px" src="https://twitter.com/favicon.ico" />][twitch]
 [<img alt="w8abit_de on Mastodon" width="22px" src="https://ruhr.social/favicon.ico" />][mastodon]
 
